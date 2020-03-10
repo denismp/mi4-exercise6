@@ -133,46 +133,205 @@ $(document).ready(function () {
 
     function encryptAndSaveJSON(wallet, password) {
         // TODO:
+        return wallet.encrypt(password, {}, showLoadingProgress)
+            .then(json => {
+                localStorage['JSON'] = json;
+                showLoggedInButtons();
+            })
+            .catch(showError)
+            .finally(hideLoadingBar);
     }
 
     function decryptWallet(json, password) {
         // TODO:
+        return ethers.Wallet.fromEncryptedWallet(json, password, showLoadingProgress);
     }
 
     function generateNewWallet() {
         // TODO;
+        let password = $('#passwordCreateWallet').val();
+        let wallet = ethers.Wallet.createRandom();
+
+        encryptAndSaveJSON(wallet, password)
+            .then(() => {
+                showInfo("PLEASE SAVE YOUR MNEMONIC: " + wallet.mnemonic);
+                $('#textAreaCreateWalletResult').val(localStorage.JSON);
+            });
     }
 
     function openWalletFromMnemonic() {
         // TODO:
+        let mnemonic = $('#passwordOpenWallet').val();
+        if (!ether.HDNode.isValidMnemonic(mnemonic))
+            return showError('Invalid mnemonic');
+
+        let password = $('#passwordOpenWallet').val();
+        let wallet = ethers.Wallet.fromMnemonic(mnemonic);
+
+        encryptAndSaveJSON(wallet, password)
+            .then(() => {
+                showInfo("Wallet successfully loaded!l");
+                $('#textareaOpenWalletResult').val(localStorage.JSON);
+            });
     }
 
     function openWalletFromFile() {
         // TODO:
+        if ($('#walletForUpload')[0].files.length === 0) {
+            return showError("Please select a file to upload.");
+        }
+        let password = $('#passwordUploadWallet').val();
+
+        let fileReader = new FileReader();
+        fileReader.onload = function () {
+            let json = fileReader.result;
+
+            decryptWallet(json, password)
+                .then(wallet => {
+                    // Check that the JSON is generated from a mnemonic and not from a single private key
+                    if (!wallet.mnemonic)
+                        return showError("Invalid JSON file!");
+
+                    localStorage['JSON'] = json;
+                    showInfo("Wallet successfully loaded!");
+                    showLoggedInButtons();
+                })
+                .catch(showError)
+                .finally(hideLoadingBar);
+        };
+
+        fileReader.readAsText($('#walletForUpload')[0].files[0]);
     }
 
     function showMnemonic() {
         // TODO:
+        let password = $('#passwordShowMne').val();
+        let json = localStorage.JSON;
+
+        decryptWallet(json, password)
+            .then(wallet => {
+                showInfo("Your mnemonic is: " + wallet.mnemonic);
+            })
+            .catch(showError)
+            .finally(hideLoadingBar)
     }
 
     function showAddressesAndBalances() {
         // TODO:
+        let password = $('#passwordShowAddress').val();
+        let json = localStorage.JSON;
+        decryptWallet(json, password)
+            .then(renderAddressesAndBalances)
+            .catch(error => {
+                $('#divAddressesAndBalances').empty();
+                showError(error);
+            })
+            .finally(hideLoadingBar);
+
+        function renderAddressesAndBalances(wallet) {
+            $('#divAddressesAndBalances').empty();
+
+            let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
+
+            for (let i = 0; i < 5; i++) {
+                let div = $('<div id="qrcode">');
+                let wallet = new ethers.Wallet(masterNode.derivationPath(derivationPath + i).privateKey, provider);
+
+                wallet.getBalance()
+                    .then((balance) => {
+                        div.qrcode(wallet.address);
+                        div.append($(`<p>${wallet.address}: ${ethers.utils.formatEther(balance)} ETH</p>`));
+                        $('#divAddressesAndBalances').append(div);
+                    })
+                    .catch(showError);
+            }
+        }
     }
+
 
     function unlockWalletAndDeriveAddresses() {
         // TODO:
+        let password = $('#passwordSendTransaction').val();
+        let json = localStorage.JSON;
+
+        decryptWallet(json, password)
+            .then(wallet => {
+                showInfo("Wallet successfully unlocked!");
+                renderAddresses(wallet);
+                $('#divSignAndSendTransaction').show();
+            })
+            .catch(showError)
+            .finally(() => {
+                $('#passwordSendTransaction').val();
+                hideLoadingBar();
+            });
+
+        function renderAddresses(wallet) {
+            $('#senderAddress').empty();
+
+            let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
+            for (let i = 0; i < 5; i++) {
+                let wallet = new ethers.Wallet(masterNode.derivationPath(derivationPath + i).privateKey, provider);
+                let address = wallet.address;
+
+                wallets[address] = wallet;
+                let option = $(`<option id=${wallet.address}>`).text(address);
+                $('#senderAddress').append(option);
+            }
+        }
     }
 
     function signTransaction() {
         // TODO:
+        let senderAddress = $('#senderAddress option:selected').attr('id');
+
+        let wallet = wallets[senderAddress];
+        if (!wallet)
+            return showError("Invalid address!");
+
+        let recipient = $('#recipientAddress').val();
+        if (!recipient)
+            return showError("Invalid recipient!")
+
+        let value = $('#transferValue').val();
+        if (!value)
+            return showError("Invalid transfer value!");
+
+        wallet.getTransactionCount()
+            .then(signTransaction)
+            .catch(showError);
+
+        function signTransaction(nonce) {
+            let transaction = {
+                nonce,
+                gasLimit: 21000,
+                gasPrice: ethers.utils.bigNumberify("20000000000"),
+                to: recipient,
+                value: ethers.utils.parseEther(value.toString()),
+                data: "0x",
+                chainId: provider.chainId
+            };
+
+            let signedTransaction = wallet.sign(transaction);
+            $('#textareaSignedTransaction').val(signedTransaction);
+        };
     }
 
     function sendSignedTransaction() {
         // TODO:
+        let signedTransaction = $('#textareaSignedTransaction').val();
+        provider.sendTransaction(signedTransaction)
+            .then(hash => {
+                let etherscanUrl = 'https://ropsten.etherscan.io/tx/' + hash;
+                $('#textareaSendTransactionResult').val(etherscanUrl);
+            })
+            .catch(showError);
     }
 
     function deleteWallet() {
         // TODO:
+        localStorage.clear();
+        showView('viewHome');
     }
 
 });

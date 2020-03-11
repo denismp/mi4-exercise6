@@ -7,7 +7,7 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
+            "name": "Launch Chrome against index.html file.",
             //"url": "http://localhost:8080",
             "url": "file:///Users/denisputnam/git/mi4-exercise6/index.html#",
             "webRoot": "${workspaceFolder}"

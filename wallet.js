@@ -1,6 +1,7 @@
 $(document).ready(function () {
     const derivationPath = "m/44'/60'/0'/0/";
-    const provider = ethers.providers.getDefaultProvider('ropsten');
+    //const provider = ethers.providers.getDefaultProvider('ropsten');
+    const provider = new ethers.providers.EtherscanProvider('ropsten');
 
     let wallets = {};
 
@@ -136,6 +137,7 @@ $(document).ready(function () {
         return wallet.encrypt(password, {}, showLoadingProgress)
             .then(json => {
                 localStorage['JSON'] = json;
+                //console.log("json="+json);
                 showLoggedInButtons();
             })
             .catch(showError)
@@ -151,11 +153,12 @@ $(document).ready(function () {
         // TODO;
         let password = $('#passwordCreateWallet').val();
         let wallet = ethers.Wallet.createRandom();
+        //console.log("password="+password);
 
         encryptAndSaveJSON(wallet, password)
             .then(() => {
                 showInfo("PLEASE SAVE YOUR MNEMONIC: " + wallet.mnemonic);
-                $('#textAreaCreateWalletResult').val(localStorage.JSON);
+                $('#textareaCreateWalletResult').val(localStorage.JSON);
             });
     }
 
@@ -205,7 +208,7 @@ $(document).ready(function () {
 
     function showMnemonic() {
         // TODO:
-        let password = $('#passwordShowMne').val();
+        let password = $('#passwordShowMnemonic').val();
         let json = localStorage.JSON;
 
         decryptWallet(json, password)
@@ -218,7 +221,7 @@ $(document).ready(function () {
 
     function showAddressesAndBalances() {
         // TODO:
-        let password = $('#passwordShowAddress').val();
+        let password = $('#passwordShowAddresses').val();
         let json = localStorage.JSON;
         decryptWallet(json, password)
             .then(renderAddressesAndBalances)
@@ -235,7 +238,7 @@ $(document).ready(function () {
 
             for (let i = 0; i < 5; i++) {
                 let div = $('<div id="qrcode">');
-                let wallet = new ethers.Wallet(masterNode.derivationPath(derivationPath + i).privateKey, provider);
+                let wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + i).privateKey, provider);
 
                 wallet.getBalance()
                     .then((balance) => {
@@ -271,7 +274,7 @@ $(document).ready(function () {
 
             let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
             for (let i = 0; i < 5; i++) {
-                let wallet = new ethers.Wallet(masterNode.derivationPath(derivationPath + i).privateKey, provider);
+                let wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + i).privateKey, provider);
                 let address = wallet.address;
 
                 wallets[address] = wallet;

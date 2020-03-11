@@ -23,6 +23,7 @@
     <a href="#" id="linkShowAddressesAndBalances" class="after-login">View Addresses</a>
     <a href="#" id="linkSendTransaction" class="after-login">Send Transaction</a>
     <a href="#" id="linkDelete" class="after-login">Delete Wallet</a>
+    <a href="#" id="linkExportJson" class="after-login">Export Json Wallet</a>
 </header>
 
 <main>
@@ -110,6 +111,15 @@
             <textarea id="textareaSendTransactionResult" class="result" readonly="true"></textarea>
         </div>
     </section>
+
+    <section id="viewExportJson">
+        <h1>Export JSON</h1>
+        <p>Show Export JSON: password -> unlock wallet -> export JSON</p>
+        <span>Enter password: </span><input type="password" id="passwordExportJson">
+        <input type="button" id="buttonShowExportJson" value="Export JSON"/>
+        <div id="divExportJson"></div>
+    </section>
+
 </main>
 
 <footer>HD Wallet Demo</footer>

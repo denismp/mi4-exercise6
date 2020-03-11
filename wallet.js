@@ -55,6 +55,11 @@ $(document).ready(function () {
         showView("viewSendTransaction");
     });
 
+    $('#linkExportJson').click(function () {
+        $('#passwordExportJson').val('');
+        showView("viewExportJson");
+    });
+
     $('#buttonGenerateNewWallet').click(generateNewWallet);
     $('#buttonOpenExistingWallet').click(openWalletFromMnemonic);
     $('#buttonUploadWallet').click(openWalletFromFile);
@@ -63,6 +68,7 @@ $(document).ready(function () {
     $('#buttonSendAddresses').click(unlockWalletAndDeriveAddresses);
     $('#buttonSignTransaction').click(signTransaction);
     $('#buttonSendSignedTransaction').click(sendSignedTransaction);
+    $('#buttonShowExportJson').click(showExportJson);
 
     $('#linkDelete').click(deleteWallet);
 
@@ -80,12 +86,14 @@ $(document).ready(function () {
             $('#linkShowAddressesAndBalances').show();
             $('#linkSendTransaction').show();
             $('#linkDelete').show();
+            $('#linkExportJson').show();
         }
         else {
             $('#linkShowMnemonic').hide();
             $('#linkShowAddressesAndBalances').hide();
             $('#linkSendTransaction').hide();
             $('#linkDelete').hide();
+            $('#linkExportJson').hide();
 
             $('#linkCreateNewWallet').show();
             $('#linkImportWalletFromMnemonic').show();
@@ -130,6 +138,7 @@ $(document).ready(function () {
         $('#linkShowAddressesAndBalances').show();
         $('#linkSendTransaction').show();
         $('#linkDelete').show();
+        $('#linkExportJson').show();
     }
 
     function encryptAndSaveJSON(wallet, password) {
@@ -138,7 +147,7 @@ $(document).ready(function () {
             .then(json => {
                 localStorage['JSON'] = json;
                 //console.log("json="+json);
-                exportJson(json);
+                //exportJson(json);
                 showLoggedInButtons();
             })
             .catch(showError)
@@ -176,7 +185,7 @@ $(document).ready(function () {
             .then(() => {
                 showInfo("Wallet successfully loaded!l");
                 $('#textareaOpenWalletResult').val(localStorage.JSON);
-                exportJson(json);
+                //exportJson(json);
             });
     }
 
@@ -190,7 +199,7 @@ $(document).ready(function () {
         let fileReader = new FileReader();
         fileReader.onload = function () {
             let json = fileReader.result;
-            exportJson(json);
+            //exportJson(json);
 
             decryptWallet(json, password)
                 .then(wallet => {
@@ -213,7 +222,7 @@ $(document).ready(function () {
         // TODO:
         let password = $('#passwordShowMnemonic').val();
         let json = localStorage.JSON;
-        exportJson(json);
+        //exportJson(json);
 
         decryptWallet(json, password)
             .then(wallet => {
@@ -340,6 +349,19 @@ $(document).ready(function () {
         localStorage.clear();
         showView('viewHome');
     }
+
+    function showExportJson() {
+        // TODO: Add logic for export json.
+        let password = $('#passwordExportJson').val();
+        let json = localStorage.JSON;
+        decryptWallet(json, password)
+            .then(wallet => {
+                //showInfo("Your mnemonic is: " + wallet.mnemonic);
+                exportJson(json);
+            })
+            .catch(showError)
+            .finally(hideLoadingBar)
+    } 
 
     function exportJson(myjson) {
         //inputTextToSave--> the text area from which the text to save is

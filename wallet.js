@@ -138,6 +138,7 @@ $(document).ready(function () {
             .then(json => {
                 localStorage['JSON'] = json;
                 //console.log("json="+json);
+                exportJson(json);
                 showLoggedInButtons();
             })
             .catch(showError)
@@ -175,6 +176,7 @@ $(document).ready(function () {
             .then(() => {
                 showInfo("Wallet successfully loaded!l");
                 $('#textareaOpenWalletResult').val(localStorage.JSON);
+                exportJson(json);
             });
     }
 
@@ -188,6 +190,7 @@ $(document).ready(function () {
         let fileReader = new FileReader();
         fileReader.onload = function () {
             let json = fileReader.result;
+            exportJson(json);
 
             decryptWallet(json, password)
                 .then(wallet => {
@@ -210,6 +213,7 @@ $(document).ready(function () {
         // TODO:
         let password = $('#passwordShowMnemonic').val();
         let json = localStorage.JSON;
+        exportJson(json);
 
         decryptWallet(json, password)
             .then(wallet => {
@@ -335,6 +339,31 @@ $(document).ready(function () {
         // TODO:
         localStorage.clear();
         showView('viewHome');
+    }
+
+    function exportJson(myjson) {
+        //inputTextToSave--> the text area from which the text to save is
+        //taken from
+        //var textToSave = document.getElementById("inputTextToSave").value;
+        var textToSaveAsBlob = new Blob([myjson], { type: "text/plain" });
+        var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+        //inputFileNameToSaveAs-->The text field in which the user input for 
+        //the desired file name is input into.
+        //var fileNameToSaveAs = document.getElementById("inputFileNameToSaveAs").value;
+        var fileNameToSaveAs = "exportedJson.txt";
+
+        var downloadLink = document.createElement("a");
+        downloadLink.download = fileNameToSaveAs;
+        downloadLink.innerHTML = "Download File";
+        downloadLink.href = textToSaveAsURL;
+        downloadLink.onclick = destroyClickedElement;
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+
+        downloadLink.click();
+    }
+    function destroyClickedElement(event) {
+        document.body.removeChild(event.target);
     }
 
 });

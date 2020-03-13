@@ -2,6 +2,71 @@ $(document).ready(function () {
     const derivationPath = "m/44'/60'/0'/0/";
     //const provider = ethers.providers.getDefaultProvider('ropsten');
     const provider = new ethers.providers.EtherscanProvider('ropsten');
+    const address = "0x245efd2b4f953accd7bf84b1db9c625074bb54f6"; // IncrementorContract.sol deployed to metamask
+    const abi = 
+    [
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "step",
+                    "type": "uint256"
+                }
+            ],
+            "name": "derivedIncrement",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "step",
+                    "type": "uint256"
+                }
+            ],
+            "name": "externalIncrement",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "step",
+                    "type": "uint256"
+                }
+            ],
+            "name": "increment",
+            "outputs": [],
+            "payable": false,
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "constant": true,
+            "inputs": [],
+            "name": "get",
+            "outputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "payable": false,
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ];
+    var contract = new ethers.Contract(address, abi, provider);
 
     let wallets = {};
 
@@ -60,6 +125,16 @@ $(document).ready(function () {
         showView("viewExportJson");
     });
 
+    $('#linkSetContract').click(function () {
+        $('#passwordSetContract').val('');
+        showView("viewSetContract");
+    });
+
+    $('#linkReadFromContract').click(function () {
+        //$('#passwordExportJson').val('');
+        showView("viewReadFromContract");
+    });
+
     $('#buttonGenerateNewWallet').click(generateNewWallet);
     $('#buttonOpenExistingWallet').click(openWalletFromMnemonic);
     $('#buttonUploadWallet').click(openWalletFromFile);
@@ -69,6 +144,8 @@ $(document).ready(function () {
     $('#buttonSignTransaction').click(signTransaction);
     $('#buttonSendSignedTransaction').click(sendSignedTransaction);
     $('#buttonShowExportJson').click(showExportJson);
+    $('#buttonSetToContract').click(showSetContract);
+    $('#buttonShowReadFromContract').click(showGetFromContract);
 
     $('#linkDelete').click(deleteWallet);
 
@@ -87,6 +164,8 @@ $(document).ready(function () {
             $('#linkSendTransaction').show();
             $('#linkDelete').show();
             $('#linkExportJson').show();
+            $('#linkToContract').show();
+            $('#linkReadFromContract').show();
         }
         else {
             $('#linkShowMnemonic').hide();
@@ -94,10 +173,12 @@ $(document).ready(function () {
             $('#linkSendTransaction').hide();
             $('#linkDelete').hide();
             $('#linkExportJson').hide();
+            $('#linkToContract').hide();
 
             $('#linkCreateNewWallet').show();
             $('#linkImportWalletFromMnemonic').show();
             $('#linkImportWalletFromFile').show();
+            $('#linkReadFromContract').show();
         }
     }
 
@@ -133,12 +214,14 @@ $(document).ready(function () {
         $('#linkCreateNewWallet').hide();
         $('#linkImportWalletFromMnemonic').hide();
         $('#linkImportWalletFromFile').hide();
+        $('#linkSetContract').hide();
 
         $('#linkShowMnemonic').show();
         $('#linkShowAddressesAndBalances').show();
         $('#linkSendTransaction').show();
         $('#linkDelete').show();
         $('#linkExportJson').show();
+        $('#linkReadFromContract').show();
     }
 
     function encryptAndSaveJSON(wallet, password) {
@@ -264,7 +347,6 @@ $(document).ready(function () {
         }
     }
 
-
     function unlockWalletAndDeriveAddresses() {
         // TODO:
         let password = $('#passwordSendTransaction').val();
@@ -361,9 +443,74 @@ $(document).ready(function () {
             })
             .catch(showError)
             .finally(hideLoadingBar)
-    } 
+    }
+
+    function showGetFromContract() {
+        // TODO: add logic to show read from a contract
+        console.log("showGetFromContract(): called...");
+            // Use the address of the contract to get the value.
+        var callPromise = contract.get();
+        callPromise.then(function(result) {
+            console.log("value=" + result);
+        });
+    }
+
+    function showSetContract() {
+        // TODO: add logic to show set a contract
+        console.log("showSetContract(): called...");
+        let password = $('#passwordSetContract').val();
+        let json = localStorage.JSON;
+        decryptWallet(json, password)
+            .then(wallet => {
+                let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
+                let my_wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + 0).privateKey, provider);
+                // Use my wallet to set the value in contract value.
+                var sendContract = new ethers.Contract(address, abi, my_wallet);
+                var sendPromise = sendContract.increment(5);
+                sendPromise.then(function(transaction) {
+                    console.log("transaction=" + transaction);
+                });
+            })
+            .catch(showError)
+            .finally(hideLoadingBar)
+
+    }
+
+    // function showReadFromContract() {
+    //     // TODO: add logic to show read from a contract
+    //     console.log("showReadFromContract(): called...");
+    //     let json = localStorage.JSON;
+    //     decryptWallet(json, '123')
+    //         .then(wallet => {
+    //             let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
+    //             let my_wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + 0).privateKey, provider);
+    //             // Use my wallet to set the value in contract value.
+    //             var sendContract = new ethers.Contract(address, abi, my_wallet);
+    //             var sendPromise = sendContract.increment(5);
+    //             sendPromise.then(function(transaction) {
+    //                 console.log("transaction=" + transaction);
+    //             });
+    //             // Use the wallet of the contract to get the value.
+    //             var callPromise = contract.get();
+    //             callPromise.then(function(result) {
+    //                 console.log("value=" + result);
+    //             });
+    //         })
+    //         .catch(showError)
+    //         .finally(hideLoadingBar)
+
+    //     // var sendPromise = sendContract.increment(5);
+    //     // sendPromise.then(function(transaction) {
+    //     //     console.log("transaction=" + transaction);
+    //     // });
+    //     // var callPromise = contract.get();
+    //     // callPromise.then(function(result) {
+    //     //     console.log("value=" + result);
+    //     // });
+    // }
 
     function exportJson(myjson) {
+        // Taken from https://thiscouldbebetter.wordpress.com/2012/12/18/loading-editing-and-saving-a-text-file-in-html5-using-javascrip/
         //inputTextToSave--> the text area from which the text to save is
         //taken from
         //var textToSave = document.getElementById("inputTextToSave").value;

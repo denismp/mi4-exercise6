@@ -448,10 +448,12 @@ $(document).ready(function () {
     function showGetFromContract() {
         // TODO: add logic to show read from a contract
         console.log("showGetFromContract(): called...");
-            // Use the address of the contract to get the value.
+        // Use the address of the contract to get the value.
+        window.location.replace;
         var callPromise = contract.get();
         callPromise.then(function(result) {
             console.log("value=" + result);
+            $('#textareaReadFromContract').val(result);
         });
     }
 
@@ -475,39 +477,6 @@ $(document).ready(function () {
             .finally(hideLoadingBar)
 
     }
-
-    // function showReadFromContract() {
-    //     // TODO: add logic to show read from a contract
-    //     console.log("showReadFromContract(): called...");
-    //     let json = localStorage.JSON;
-    //     decryptWallet(json, '123')
-    //         .then(wallet => {
-    //             let masterNode = ethers.HDNode.fromMnemonic(wallet.mnemonic);
-    //             let my_wallet = new ethers.Wallet(masterNode.derivePath(derivationPath + 0).privateKey, provider);
-    //             // Use my wallet to set the value in contract value.
-    //             var sendContract = new ethers.Contract(address, abi, my_wallet);
-    //             var sendPromise = sendContract.increment(5);
-    //             sendPromise.then(function(transaction) {
-    //                 console.log("transaction=" + transaction);
-    //             });
-    //             // Use the wallet of the contract to get the value.
-    //             var callPromise = contract.get();
-    //             callPromise.then(function(result) {
-    //                 console.log("value=" + result);
-    //             });
-    //         })
-    //         .catch(showError)
-    //         .finally(hideLoadingBar)
-
-    //     // var sendPromise = sendContract.increment(5);
-    //     // sendPromise.then(function(transaction) {
-    //     //     console.log("transaction=" + transaction);
-    //     // });
-    //     // var callPromise = contract.get();
-    //     // callPromise.then(function(result) {
-    //     //     console.log("value=" + result);
-    //     // });
-    // }
 
     function exportJson(myjson) {
         // Taken from https://thiscouldbebetter.wordpress.com/2012/12/18/loading-editing-and-saving-a-text-file-in-html5-using-javascrip/

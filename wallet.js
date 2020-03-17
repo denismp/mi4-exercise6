@@ -258,7 +258,7 @@ $(document).ready(function () {
     function openWalletFromMnemonic() {
         // TODO:
         let mnemonic = $('#passwordOpenWallet').val();
-        if (!ether.HDNode.isValidMnemonic(mnemonic))
+        if (!ethers.HDNode.isValidMnemonic(mnemonic))
             return showError('Invalid mnemonic');
 
         let password = $('#passwordOpenWallet').val();
